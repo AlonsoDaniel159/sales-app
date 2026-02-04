@@ -18,6 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class IngressServiceImpl implements IngressService {
 
     private final IngressRepo repo;
@@ -101,6 +102,7 @@ public class IngressServiceImpl implements IngressService {
     }
 
     @Override
+    @Transactional
     public void deleteById(Integer idIngress) {
         repo.findById(idIngress)
                 .orElseThrow(() -> new ModelNotFoundException("Ingress not found with id: " + idIngress));

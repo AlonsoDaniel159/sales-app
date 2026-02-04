@@ -9,6 +9,8 @@ import com.alonso.salesapp.repository.CategoryRepo;
 import com.alonso.salesapp.repository.ProductRepo;
 import com.alonso.salesapp.service.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,8 +60,9 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public List<ProductDTO> readAll() {
-        return repo.findAll().stream().map(mapper::toDTO).toList();
+    public Page<ProductDTO> readAllWithPagination(int page, int size) {
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+        return repo.findAll(pageable).map(mapper::toDTO);
     }
 
     @Override

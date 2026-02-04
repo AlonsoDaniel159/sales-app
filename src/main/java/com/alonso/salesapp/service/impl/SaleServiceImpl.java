@@ -19,6 +19,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class SaleServiceImpl implements ISaleService {
 
     private final SaleRepo repo;
