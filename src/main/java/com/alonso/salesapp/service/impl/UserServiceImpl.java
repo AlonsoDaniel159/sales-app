@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service.impl;
 
-import com.alonso.salesapp.dto.UserDTO;
+import com.alonso.salesapp.dto.user.UserDTO;
 import com.alonso.salesapp.exception.ModelNotFoundException;
 import com.alonso.salesapp.mapper.UserMapper;
 import com.alonso.salesapp.model.Role;

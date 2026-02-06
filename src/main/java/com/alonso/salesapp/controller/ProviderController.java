@@ -1,6 +1,6 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.ProviderDTO;
+import com.alonso.salesapp.dto.provider.ProviderDTO;
 import com.alonso.salesapp.service.IProviderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service.impl;
 
-import com.alonso.salesapp.dto.ingress.IngressDTO;
+import com.alonso.salesapp.dto.ingress.IngressRequestDTO;
 import com.alonso.salesapp.dto.ingress.IngressResponseDTO;
 import com.alonso.salesapp.exception.ModelNotFoundException;
 import com.alonso.salesapp.mapper.IngressMapper;
@@ -42,7 +42,7 @@ public class IngressServiceImpl implements IngressService {
 
     @Override
     @Transactional
-    public IngressResponseDTO create(IngressDTO dto) {
+    public IngressResponseDTO create(IngressRequestDTO dto) {
         log.info("Creating ingress: {}", dto);
 
         Ingress ingress = mapper.toEntity(dto);
@@ -64,7 +64,7 @@ public class IngressServiceImpl implements IngressService {
         ingress.setUser(user);
 
         //Asignar fecha si no viene
-        if(dto.dateTime() == null) {
+        if (dto.dateTime() == null) {
             ingress.setDateTime(LocalDateTime.now());
         }
 
@@ -81,6 +81,16 @@ public class IngressServiceImpl implements IngressService {
         ingress.setTotal(calculatedSubTotal + tax); // Total sin tax
 
         //Cargar productos completos para cada detalle
+        loadProductsForDetails(ingress);
+
+        //Guardar venta con detalles (CascadeType.ALL)
+        Ingress ingressSaved = repo.save(ingress);
+        log.info("Ingerss created successfully with id: {}", ingressSaved.getIdIngress());
+
+        return mapper.toResponseDTO(ingressSaved);
+    }
+
+    private void loadProductsForDetails(Ingress ingress) {
         ingress.getDetails().forEach(detail -> {
             Product product = productRepo.findByIdLocked(detail.getProduct().getIdProduct())
                     .orElseThrow(() -> new ModelNotFoundException(
@@ -93,20 +103,5 @@ public class IngressServiceImpl implements IngressService {
             detail.setProduct(product);
             detail.setIngress(ingress);
         });
-
-        //Guardar venta con detalles (CascadeType.ALL)
-        Ingress ingressSaved = repo.save(ingress);
-        log.info("Ingerss created successfully with id: {}", ingressSaved.getIdIngress());
-
-        return mapper.toResponseDTO(ingressSaved);
-    }
-
-    @Override
-    @Transactional
-    public void deleteById(Integer idIngress) {
-        repo.findById(idIngress)
-                .orElseThrow(() -> new ModelNotFoundException("Ingress not found with id: " + idIngress));
-        repo.deleteById(idIngress);
-        log.info("Ingress deleted successfully with id: {}", idIngress);
     }
 }

@@ -1,6 +1,6 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.RoleDTO;
+import com.alonso.salesapp.dto.role.RoleDTO;
 import com.alonso.salesapp.service.IRoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

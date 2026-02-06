@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service.impl;
 
-import com.alonso.salesapp.dto.CategoryDTO;
+import com.alonso.salesapp.dto.category.CategoryDTO;
 import com.alonso.salesapp.exception.ModelNotFoundException;
 import com.alonso.salesapp.mapper.CategoryMapper;
 import com.alonso.salesapp.model.Category;
@@ -50,6 +50,8 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public void delete(Integer id) {
-        repo.deleteById(id);
+        Category category = repo.findById(id).orElseThrow(() -> new ModelNotFoundException("Categoría no encontrada ID: " + id));
+        category.setEnabled(false);
+        repo.save(category);
     }
 }

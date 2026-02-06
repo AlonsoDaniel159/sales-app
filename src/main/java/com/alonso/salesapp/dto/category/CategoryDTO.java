@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto;
+package com.alonso.salesapp.dto.category;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;

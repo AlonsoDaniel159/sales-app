@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service;
 
-import com.alonso.salesapp.dto.RoleDTO;
+import com.alonso.salesapp.dto.role.RoleDTO;
 
 import java.util.List;
 

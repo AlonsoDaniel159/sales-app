@@ -1,6 +1,7 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.ProductDTO;
+import com.alonso.salesapp.dto.product.ProductRequestDTO;
+import com.alonso.salesapp.dto.product.ProductResponseDTO;
 import com.alonso.salesapp.service.IProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,27 +22,27 @@ public class ProductController {
 
     @Operation(summary = "Get all products with pagination", description = "Retrieve a paginated list of products")
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> readAll(@RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size) {
-        Page<ProductDTO> products = service.readAllWithPagination(page, size);
+    public ResponseEntity<Page<ProductResponseDTO>> readAll(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size) {
+        Page<ProductResponseDTO> products = service.readAllWithPagination(page, size);
         return ResponseEntity.ok(products);
     }
 
     @Operation(summary = "Get product by ID", description = "Retrieve a product by its ID")
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDTO> readById(@PathVariable Integer id) {
+    public ResponseEntity<ProductResponseDTO> readById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.readById(id));
     }
 
     @Operation(summary = "Create a new product", description = "Create a new product with the provided details")
     @PostMapping
-    public ResponseEntity<ProductDTO> save(@Valid @RequestBody ProductDTO dto) {
+    public ResponseEntity<ProductResponseDTO> save(@Valid @RequestBody ProductRequestDTO dto) {
         return new ResponseEntity<>(service.create(dto), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Update an existing product", description = "Update the details of an existing product by its ID")
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDTO> update(@PathVariable Integer id, @Valid @RequestBody ProductDTO dto) {
+    public ResponseEntity<ProductResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody ProductResponseDTO dto) {
         return ResponseEntity.ok(service.update(id, dto));
     }
 

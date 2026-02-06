@@ -1,5 +1,7 @@
 package com.alonso.salesapp.dto.sale;
 
+import com.alonso.salesapp.dto.client.ClientSummaryDTO;
+import com.alonso.salesapp.dto.user.UserSummaryDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;

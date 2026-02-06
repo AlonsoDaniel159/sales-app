@@ -35,7 +35,7 @@ public class Sale {
     private Double tax;
 
     // IMPORTANTE: CascadeType.ALL permite guardar la Cabecera y los Detalles de un solo golpe
-    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<SaleDetail> details;
 

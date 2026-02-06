@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto.sale;
+package com.alonso.salesapp.dto.user;
 
 public record UserSummaryDTO(
         Integer idUser,

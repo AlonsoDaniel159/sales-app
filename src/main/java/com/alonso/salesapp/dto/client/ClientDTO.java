@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto;
+package com.alonso.salesapp.dto.client;
 
 import jakarta.validation.constraints.*;
 

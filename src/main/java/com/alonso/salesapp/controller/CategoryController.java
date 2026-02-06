@@ -1,6 +1,6 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.CategoryDTO;
+import com.alonso.salesapp.dto.category.CategoryDTO;
 import com.alonso.salesapp.service.ICategoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

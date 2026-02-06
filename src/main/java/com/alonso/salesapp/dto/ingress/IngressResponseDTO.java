@@ -1,6 +1,8 @@
 package com.alonso.salesapp.dto.ingress;
 
-import com.alonso.salesapp.dto.sale.UserSummaryDTO;
+import com.alonso.salesapp.dto.ingressdetail.IngressDetailResponseDTO;
+import com.alonso.salesapp.dto.provider.ProviderSummaryDTO;
+import com.alonso.salesapp.dto.user.UserSummaryDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;

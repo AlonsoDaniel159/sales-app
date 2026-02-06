@@ -1,6 +1,6 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.ingress.IngressDTO;
+import com.alonso.salesapp.dto.ingress.IngressRequestDTO;
 import com.alonso.salesapp.dto.ingress.IngressResponseDTO;
 import com.alonso.salesapp.service.IngressService;
 import jakarta.validation.Valid;
@@ -29,14 +29,8 @@ public class IngressController {
     }
 
     @PostMapping
-    public ResponseEntity<IngressResponseDTO> create(@Valid @RequestBody IngressDTO ingressDTO) {
-        IngressResponseDTO created = service.create(ingressDTO);
+    public ResponseEntity<IngressResponseDTO> create(@Valid @RequestBody IngressRequestDTO ingressRequestDTO) {
+        IngressResponseDTO created = service.create(ingressRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
-
-    @DeleteMapping("/{idIngress}")
-    public ResponseEntity<Void> deleteById(@PathVariable Integer idIngress) {
-        service.deleteById(idIngress);
-        return ResponseEntity.noContent().build();
     }
 }

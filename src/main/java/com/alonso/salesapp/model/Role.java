@@ -13,7 +13,7 @@ public class Role {
     @EqualsAndHashCode.Include
     private Integer idRole; // No autogenerado, los roles suelen ser fijos (1: ADMIN, 2: USER)
 
-    @Column(length = 10, nullable = false)
+    @Column(length = 20, nullable = false)
     private String name;
 
     @Column(nullable = false)

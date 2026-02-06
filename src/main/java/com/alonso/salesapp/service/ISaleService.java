@@ -12,6 +12,4 @@ public interface ISaleService {
     SaleResponseDTO readById(Integer idSale);
 
     List<SaleResponseDTO> readAll();
-
-    void deleteById(Integer idSale);
 }

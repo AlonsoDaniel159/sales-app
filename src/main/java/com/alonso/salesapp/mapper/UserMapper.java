@@ -1,7 +1,7 @@
 package com.alonso.salesapp.mapper;
 
-import com.alonso.salesapp.dto.UserDTO;
-import com.alonso.salesapp.dto.sale.UserSummaryDTO;
+import com.alonso.salesapp.dto.user.UserDTO;
+import com.alonso.salesapp.dto.user.UserSummaryDTO;
 import com.alonso.salesapp.model.User;
 import org.mapstruct.*;
 

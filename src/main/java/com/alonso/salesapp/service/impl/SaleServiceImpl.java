@@ -112,13 +112,4 @@ public class SaleServiceImpl implements ISaleService {
         // 9. Retornar DTO con objetos completos
         return mapper.toResponseDTO(savedSale);
     }
-
-    @Override
-    @Transactional
-    public void deleteById(Integer idSale) {
-        repo.findById(idSale)
-                .orElseThrow(() -> new ModelNotFoundException("Sale not found with id: " + idSale));
-        repo.deleteById(idSale);
-        log.info("Sale deleted successfully with id: {}", idSale);
-    }
 }

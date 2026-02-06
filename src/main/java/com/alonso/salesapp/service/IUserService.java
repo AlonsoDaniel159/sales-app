@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service;
 
-import com.alonso.salesapp.dto.UserDTO;
+import com.alonso.salesapp.dto.user.UserDTO;
 
 import java.util.List;
 

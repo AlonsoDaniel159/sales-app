@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service;
 
-import com.alonso.salesapp.dto.CategoryDTO;
+import com.alonso.salesapp.dto.category.CategoryDTO;
 import java.util.List;
 
 public interface ICategoryService {

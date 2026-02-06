@@ -1,6 +1,6 @@
 package com.alonso.salesapp.mapper;
 
-import com.alonso.salesapp.dto.ProviderDTO;
+import com.alonso.salesapp.dto.provider.ProviderDTO;
 import com.alonso.salesapp.model.Provider;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

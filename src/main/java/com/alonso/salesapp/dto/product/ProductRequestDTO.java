@@ -1,10 +1,13 @@
-package com.alonso.salesapp.dto;
+package com.alonso.salesapp.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-public record ProductDTO(
+public record ProductRequestDTO(
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)
         Integer idProduct,
 
@@ -24,7 +27,6 @@ public record ProductDTO(
         @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "#.00")
         Double price,
 
-        Integer stock,
-
         Boolean enabled
-) {}
+) {
+}

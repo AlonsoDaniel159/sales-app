@@ -1,6 +1,6 @@
 package com.alonso.salesapp.mapper;
 
-import com.alonso.salesapp.dto.CategoryDTO;
+import com.alonso.salesapp.dto.category.CategoryDTO;
 import com.alonso.salesapp.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;

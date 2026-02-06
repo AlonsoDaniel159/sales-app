@@ -33,10 +33,4 @@ public class SaleController {
         SaleResponseDTO created = service.create(saleDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
-
-    @DeleteMapping("/{idSale}")
-    public ResponseEntity<Void> deleteById(@PathVariable Integer idSale) {
-        service.deleteById(idSale);
-        return ResponseEntity.noContent().build();
-    }
 }

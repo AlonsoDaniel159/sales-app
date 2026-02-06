@@ -1,5 +1,6 @@
 package com.alonso.salesapp.dto.sale;
 
+import com.alonso.salesapp.dto.product.ProductSummaryDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.math.BigDecimal;

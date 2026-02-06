@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service.impl;
 
-import com.alonso.salesapp.dto.RoleDTO;
+import com.alonso.salesapp.dto.role.RoleDTO;
 import com.alonso.salesapp.exception.ModelNotFoundException;
 import com.alonso.salesapp.mapper.RoleMapper;
 import com.alonso.salesapp.model.Role;
@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +38,7 @@ public class RoleServiceImpl implements IRoleService {
     public List<RoleDTO> readAll() {
         return repo.findAll().stream()
                 .map(mapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override

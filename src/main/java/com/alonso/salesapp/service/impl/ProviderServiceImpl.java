@@ -1,6 +1,6 @@
 package com.alonso.salesapp.service.impl;
 
-import com.alonso.salesapp.dto.ProviderDTO;
+import com.alonso.salesapp.dto.provider.ProviderDTO;
 import com.alonso.salesapp.exception.ModelNotFoundException;
 import com.alonso.salesapp.mapper.ProviderMapper;
 import com.alonso.salesapp.model.Provider;

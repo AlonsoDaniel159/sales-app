@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto;
+package com.alonso.salesapp.dto.user;
 import jakarta.validation.constraints.*;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

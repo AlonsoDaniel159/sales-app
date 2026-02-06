@@ -1,6 +1,6 @@
 package com.alonso.salesapp.controller;
 
-import com.alonso.salesapp.dto.ClientDTO;
+import com.alonso.salesapp.dto.client.ClientDTO;
 import com.alonso.salesapp.service.IClientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -22,7 +22,6 @@ public record SaleDTO(
         Integer idUser,
 
         LocalDateTime dateTime,
-        Double total,
         Double tax,
 
         @NotNull

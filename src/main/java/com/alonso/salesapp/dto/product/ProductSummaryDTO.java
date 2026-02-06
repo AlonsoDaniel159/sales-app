@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto.sale;
+package com.alonso.salesapp.dto.product;
 
 public record ProductSummaryDTO(
         Integer idProduct,

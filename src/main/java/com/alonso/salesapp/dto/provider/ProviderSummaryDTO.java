@@ -1,4 +1,4 @@
-package com.alonso.salesapp.dto.ingress;
+package com.alonso.salesapp.dto.provider;
 
 public record ProviderSummaryDTO(
         Integer idProvider,

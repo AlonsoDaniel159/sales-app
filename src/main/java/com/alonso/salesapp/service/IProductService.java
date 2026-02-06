@@ -1,14 +1,13 @@
 package com.alonso.salesapp.service;
 
-import com.alonso.salesapp.dto.ProductDTO;
+import com.alonso.salesapp.dto.product.ProductRequestDTO;
+import com.alonso.salesapp.dto.product.ProductResponseDTO;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
-
 public interface IProductService {
-    ProductDTO create(ProductDTO dto);
-    ProductDTO update(Integer id, ProductDTO dto);
-    Page<ProductDTO> readAllWithPagination(int page, int size);
-    ProductDTO readById(Integer id);
+    ProductResponseDTO create(ProductRequestDTO dto);
+    ProductResponseDTO update(Integer id, ProductResponseDTO dto);
+    Page<ProductResponseDTO> readAllWithPagination(int page, int size);
+    ProductResponseDTO readById(Integer id);
     void delete(Integer id);
 }

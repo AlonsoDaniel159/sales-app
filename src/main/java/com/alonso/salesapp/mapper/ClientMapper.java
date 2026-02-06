@@ -1,7 +1,7 @@
 package com.alonso.salesapp.mapper;
 
-import com.alonso.salesapp.dto.ClientDTO;
-import com.alonso.salesapp.dto.sale.ClientSummaryDTO;
+import com.alonso.salesapp.dto.client.ClientDTO;
+import com.alonso.salesapp.dto.client.ClientSummaryDTO;
 import com.alonso.salesapp.model.Client;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
