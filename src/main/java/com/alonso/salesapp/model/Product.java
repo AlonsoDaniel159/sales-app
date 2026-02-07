@@ -34,6 +34,12 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column
+    private String imageUrl;
+
+    @Column
+    private String imagePublicId;
+
     @Column(nullable = false)
     private boolean enabled = true;
 }

@@ -9,8 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("api/v1/products")
@@ -34,16 +36,21 @@ public class ProductController {
         return ResponseEntity.ok(service.readById(id));
     }
 
-    @Operation(summary = "Create a new product", description = "Create a new product with the provided details")
-    @PostMapping
-    public ResponseEntity<ProductResponseDTO> save(@Valid @RequestBody ProductRequestDTO dto) {
-        return new ResponseEntity<>(service.create(dto), HttpStatus.CREATED);
+    @Operation(summary = "Create a new product", description = "Create a new product with image")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductResponseDTO> save(
+            @Valid @RequestPart("product") ProductRequestDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        return new ResponseEntity<>(service.create(dto, image), HttpStatus.CREATED);
     }
 
-    @Operation(summary = "Update an existing product", description = "Update the details of an existing product by its ID")
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody ProductResponseDTO dto) {
-        return ResponseEntity.ok(service.update(id, dto));
+    @Operation(summary = "Update an existing product", description = "Update product with optional new image")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductResponseDTO> update(
+            @PathVariable Integer id,
+            @Valid @RequestPart("product") ProductRequestDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        return ResponseEntity.ok(service.update(id, dto, image));
     }
 
     @Operation(summary = "Delete a product", description = "Delete a product by its ID")

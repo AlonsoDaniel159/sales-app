@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalErrorHandler {
 
-    // 1. Manejar cuando no encontramos algo (404 Not Found)
+    // Manejar cuando no encontramos algo (404 Not Found)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ModelNotFoundException.class)
     @ResponseBody
@@ -32,7 +32,7 @@ public class GlobalErrorHandler {
         );
     }
 
-    // 2. Manejar validaciones (@Valid) fallidas (400 Bad Request)
+    // Manejar validaciones (@Valid) fallidas (400 Bad Request)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
@@ -53,7 +53,7 @@ public class GlobalErrorHandler {
         );
     }
 
-    // 3. Manejar cualquier otro error no previsto (500 Internal Server Error)
+    // Manejar cualquier otro error no previsto (500 Internal Server Error)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     @ResponseBody
@@ -66,4 +66,18 @@ public class GlobalErrorHandler {
                 null
         );
     }
+
+
+    @ExceptionHandler(CloudinaryException.class)
+    public ResponseEntity<ErrorResponse> handleCloudinaryException(CloudinaryException e, HttpServletRequest request) {
+        ErrorResponse error = new ErrorResponse(
+                e.getMessage(),
+                LocalDateTime.now(),
+                e.getClass().getSimpleName(),
+                request.getRequestURI(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
 }

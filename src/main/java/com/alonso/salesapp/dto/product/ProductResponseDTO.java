@@ -2,6 +2,7 @@ package com.alonso.salesapp.dto.product;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 
 public record ProductResponseDTO(
@@ -26,5 +27,10 @@ public record ProductResponseDTO(
 
         Integer stock,
 
+        String imageUrl,
+
+        String imagePublicId,
+
         Boolean enabled
-) {}
+) {
+}

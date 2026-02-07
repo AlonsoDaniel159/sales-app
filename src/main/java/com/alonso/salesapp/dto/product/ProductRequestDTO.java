@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 public record ProductRequestDTO(
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -26,6 +27,8 @@ public record ProductRequestDTO(
         @Min(value = 1, message = "El precio debe ser mayor a 0")
         @JsonFormat(shape = JsonFormat.Shape.NUMBER, pattern = "#.00")
         Double price,
+
+        MultipartFile file,
 
         Boolean enabled
 ) {
