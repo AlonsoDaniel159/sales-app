@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -59,21 +60,21 @@ public class ProductServiceImpl implements IProductService {
     @Transactional
     @Override
     public ProductResponseDTO update(Integer id, ProductRequestDTO dto, MultipartFile image) {
-        // 1. Buscar existente
+        // Buscar existente
         Product existing = repo.findById(id)
                 .orElseThrow(() -> new ModelNotFoundException("Producto no encontrado ID: " + id));
 
-        // 2. Actualizar solo lo que viene
+        // Actualizar solo lo que viene
         if (dto.categoryId() != null && !dto.categoryId().equals(existing.getCategory().getIdCategory())) {
             Category category = categoryRepo.findById(dto.categoryId())
                     .orElseThrow(() -> new ModelNotFoundException("Categoría no encontrada ID: " + dto.categoryId()));
             existing.setCategory(category);
         }
 
-        if (dto.name() != null) existing.setName(dto.name());
-        if (dto.description() != null) existing.setDescription(dto.description());
-        if (dto.price() != null && dto.price() > 0) existing.setPrice(dto.price());
-        if (dto.enabled() != null) existing.setEnabled(dto.enabled());
+        Optional.ofNullable(dto.name()).ifPresent(existing::setName);
+        Optional.ofNullable(dto.description()).ifPresent(existing::setDescription);
+        Optional.ofNullable(dto.price()).filter(price -> price > 0).ifPresent(existing::setPrice);
+        Optional.ofNullable(dto.enabled()).ifPresent(existing::setEnabled);
 
         if (image != null && !image.isEmpty()) {
             // Eliminar imagen anterior si existe
@@ -112,17 +113,5 @@ public class ProductServiceImpl implements IProductService {
         }
 
         repo.save(product);
-    }
-
-
-    //Borrado de imagenes para el create-drop
-    @PreDestroy
-    public void cleanUpImages() {
-        log.info("Eliminando imágenes subidas antes de detener el servicio...");
-        repo.findAll().forEach(product -> {
-            if (product.getImagePublicId() != null) {
-                cloudinaryService.delete(product.getImagePublicId());
-            }
-        });
     }
 }
