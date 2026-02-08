@@ -13,6 +13,7 @@ public interface ProductMapper {
 
     // Al guardar: DTO (id:5) -> Entity (Category{id:5})
     @Mapping(source = "categoryId", target = "category.idCategory")
+    @Mapping(target = "idProduct", ignore = true)
     Product toEntity(ProductRequestDTO dto);
 
     // Al leer: Entity (Category{id:5}) -> DTO (id:5)

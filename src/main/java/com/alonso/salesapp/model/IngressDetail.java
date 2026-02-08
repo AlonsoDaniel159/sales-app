@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 @Entity
 public class IngressDetail {
 
@@ -20,7 +21,7 @@ public class IngressDetail {
     private Ingress ingress; // EL PADRE
 
     @ManyToOne
-    @JoinColumn(name = "id_product", nullable = false, foreignKey = @ForeignKey(name = "FK_Detail_Product"))
+    @JoinColumn(name = "id_product", nullable = false, foreignKey = @ForeignKey(name = "FK_IngressDetail_Product"))
     private Product product; // EL PRODUCTO
 
     @Column(nullable = false)

@@ -7,6 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
 @Entity
 public class SaleDetail {
 
@@ -20,7 +21,7 @@ public class SaleDetail {
     private Sale sale;
 
     @ManyToOne
-    @JoinColumn(name = "id_product", nullable = false, foreignKey = @ForeignKey(name = "FK_Detail_Product"))
+    @JoinColumn(name = "id_product", nullable = false, foreignKey = @ForeignKey(name = "FK_SaleDetail_Product"))
     private Product product;
 
     @Column(nullable = false)
