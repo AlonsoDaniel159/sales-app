@@ -42,5 +42,6 @@ public class Product {
     private String imagePublicId;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 }

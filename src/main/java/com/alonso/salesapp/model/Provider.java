@@ -22,5 +22,6 @@ public class Provider {
     private String address;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 }

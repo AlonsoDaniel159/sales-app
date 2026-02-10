@@ -28,5 +28,6 @@ public class User {
     private String password; // Aquí irá encriptada luego
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 }

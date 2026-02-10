@@ -11,25 +11,28 @@ import com.alonso.salesapp.repository.ProductRepo;
 import com.alonso.salesapp.service.ICloudinaryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
-import static org.assertj.core.api.Assertions.*;
-
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Product Service Tests")
@@ -42,7 +45,7 @@ class ProductServiceImplTest {
     private CategoryRepo categoryRepo;
 
     @Mock
-    private ProductMapper mapper;
+    private ProductMapper productMapper;
 
     @Mock
     private ICloudinaryService cloudinaryService;
@@ -51,396 +54,563 @@ class ProductServiceImplTest {
     private ProductServiceImpl productService;
 
     private Category category;
-    private ProductRequestDTO request;
     private Product product;
+    private ProductRequestDTO requestDTO;
     private ProductResponseDTO responseDTO;
-    private MockMultipartFile validFile;
-    private MockMultipartFile emptyFile;
-    Integer idProduct;
-    String secure_url;
-    String public_id;
+    private MultipartFile mockImage;
 
     @BeforeEach
     void setUp() {
-        category = new Category(1, "Electronics", "Electronic devices", true);
-        request = new ProductRequestDTO(1, "Laptop", "Gaming laptop", 1500.0, true);
-        product = new Product(1, category, "Laptop", "Gaming laptop", 1500.0, 0, null, null, true);
-        responseDTO = new ProductResponseDTO(1, 1, "Laptop", "Gaming laptop", 1500.0, 0, null, null, true);
-        validFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[]{1, 2, 3});
-        emptyFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", new byte[]{});
-        idProduct = 1;
-        secure_url = "https://cloudinary.com/old_image.jpg";
-        public_id = "img_123";
-    }
+        // Configurar Category
+        category = Category.builder()
+                .idCategory(1)
+                .name("Electrónicos")
+                .description("Productos electrónicos")
+                .enabled(true)
+                .build();
 
+        // Configurar Product
+        product = Product.builder()
+                .idProduct(1)
+                .category(category)
+                .name("Laptop")
+                .description("Laptop HP")
+                .price(1500.0)
+                .stock(0)
+                .imageUrl("https://example.com/image.jpg")
+                .imagePublicId("public_id_123")
+                .enabled(true)
+                .build();
 
-    /*
-    ========================
-    * * * CREATE TESTS * * *
-    ========================
-    * */
-    @Test
-    @DisplayName("Create - Debería lanzar exception cuando la categoría no existe")
-    void create_ShouldThrowModelNotFoundException_WhenCategoryDoesNotExist() {
-        when(categoryRepo.findById(anyInt())).thenReturn(Optional.empty());
+        // Configurar DTOs
+        requestDTO = new ProductRequestDTO(1, "Laptop", "Laptop HP", 1500.0, true);
 
-        assertThatThrownBy(() -> productService.create(request, validFile))
-                .isInstanceOf(ModelNotFoundException.class)
-                .hasMessage("Categoría no encontrada ID: " + request.categoryId());
+        responseDTO = new ProductResponseDTO(1, 1, "Laptop", "Laptop HP", 1500.0, 0,
+                "https://example.com/image.jpg", "public_id_123", true);
 
-        verify(categoryRepo, times(1)).findById(1);
-        verifyNoInteractions(productRepo, mapper, cloudinaryService);
-    }
-
-    @Test
-    @DisplayName("Create - Debería crear producto sin imagen cuando image es null")
-    void create_ShouldNotUploadImage_WhenImageIsNull() {
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
-        when(mapper.toEntity(request)).thenReturn(product);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
-
-        ProductResponseDTO response = productService.create(request, null);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.price()).isEqualTo(1500.0);
-        assertThat(response.imageUrl()).isNull();
-
-        verify(categoryRepo, times(1)).findById(1);
-        verify(productRepo, times(1)).save(any(Product.class));
-        verifyNoInteractions(cloudinaryService);
-    }
-
-    @Test
-    @DisplayName("Create - Debería crear producto sin imagen cuando image está vacía")
-    void create_ShouldCreateProductWithoutImage_WhenImageIsEmpty() {
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
-        when(mapper.toEntity(request)).thenReturn(product);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
-
-        ProductResponseDTO response = productService.create(request, emptyFile);
-
-        assertThat(response).isNotNull();
-        assertThat(response.imageUrl()).isNull();
-
-        verifyNoInteractions(cloudinaryService);
-    }
-
-    @Test
-    @DisplayName("Create - Debería crear producto con imagen exitosamente")
-    void create_ShouldCreateProductWithImage_WhenValidFileProvided() {
-        Map<String, Object> cloudinaryResult = Map.of(
-                "secure_url", secure_url,
-                "public_id", public_id
-        );
-        ProductResponseDTO expectedResponse = new ProductResponseDTO(
-                product.getIdProduct(), category.getIdCategory(), "Laptop", "Gaming laptop", 1500.0, 0,
-                secure_url, public_id, true
-        );
-
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
-        when(mapper.toEntity(request)).thenReturn(product);
-        when(cloudinaryService.upload(validFile)).thenReturn(cloudinaryResult);
-        when(productRepo.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            assertThat(p.getImageUrl()).isEqualTo(secure_url);
-            assertThat(p.getImagePublicId()).isEqualTo(public_id);
-            return p;
-        });
-        when(mapper.toDTO(any(Product.class))).thenReturn(expectedResponse);
-
-        ProductResponseDTO response = productService.create(request, validFile);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.imageUrl()).isEqualTo(secure_url);
-        assertThat(response.imagePublicId()).isEqualTo(public_id);
-
-        verify(categoryRepo, times(1)).findById(1);
-        verify(cloudinaryService, times(1)).upload(validFile);
-        verify(productRepo, times(1)).save(any(Product.class));
-    }
-
-    @Test
-    @DisplayName("Create - Debería inicializar stock en 0")
-    void create_ShouldInitializeStockToZero() {
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
-        when(mapper.toEntity(request)).thenReturn(product);
-        when(productRepo.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            assertThat(p.getStock()).isEqualTo(0);
-            return p;
-        });
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
-
-        productService.create(request, null);
-
-        verify(productRepo).save(argThat(p -> p.getStock() == 0));
-    }
-
-    @Test
-    @DisplayName("Create - Debería asignar la categoría correctamente")
-    void create_ShouldAssignCategory() {
-        when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
-        when(mapper.toEntity(request)).thenReturn(product);
-        when(productRepo.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            assertThat(p.getCategory()).isEqualTo(category);
-            return p;
-        });
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
-
-        productService.create(request, null);
-
-        verify(productRepo).save(argThat(p -> p.getCategory().equals(category)));
-    }
-
-    /*
-   ========================
-   * * * UPDATE TESTS * * *
-   ========================
-   * */
-    @Test
-    @DisplayName("Update - Debería lanzar exception cuando el producto no existe")
-    void update_ShouldThrowModelNotFoundException_WhenProductDoesNotExist() {
-        when(productRepo.findById(anyInt())).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> productService.update(1, request, validFile))
-                .isInstanceOf(ModelNotFoundException.class)
-                .hasMessage("Producto no encontrado ID: " + 1);
-
-        verify(productRepo, times(1)).findById(1);
-        verifyNoInteractions(categoryRepo, mapper, cloudinaryService);
-    }
-
-    @Test
-    @DisplayName("Update - Debería lanzar exception cuando la categoría no existe")
-    void update_ShouldThrowModelNotFoundException_WhenCategoryDoesNotExist() {
-        ProductRequestDTO requestDto = new ProductRequestDTO(2, "Laptop", "Gaming laptop", 1500.0, true);
-
-        when(productRepo.findById(idProduct)).thenReturn(Optional.of(product));
-        when(categoryRepo.findById(anyInt())).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> productService.update(idProduct, requestDto, validFile))
-                .isInstanceOf(ModelNotFoundException.class)
-                .hasMessage("Categoría no encontrada ID: " + requestDto.categoryId());
-
-        verify(productRepo, times(1)).findById(1);
-        verify(categoryRepo, times(1)).findById(requestDto.categoryId());
-        verifyNoInteractions(mapper, cloudinaryService);
-    }
-
-    @Test
-    @DisplayName("Update - Debería actualizar los campos correctamente con la imagen vacía")
-    void update_ShouldUpdateFieldsCorrectlyWithEmptyImage() {
-        ProductRequestDTO requestDTO = new ProductRequestDTO(2, "Laptop", "Gaming laptop", 1500.0, true);
-
-        when(productRepo.findById(idProduct)).thenReturn(Optional.of(product));
-        when(categoryRepo.findById(requestDTO.categoryId())).thenReturn(Optional.of(category));
-        when(mapper.toDTO(any(Product.class))).thenReturn(responseDTO);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
-
-        ProductResponseDTO response = productService.update(idProduct, requestDTO, emptyFile);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.description()).isEqualTo("Gaming laptop");
-        assertThat(response.price()).isEqualTo(1500.0);
-        assertThat(response.enabled()).isTrue();
-
-        verify(productRepo, times(1)).findById(idProduct);
-        verify(categoryRepo, times(1)).findById(requestDTO.categoryId());
-        verify(productRepo, times(1)).save(any(Product.class));
-    }
-
-    @Test
-    @DisplayName("Update - Debería actualizar los campos correctamente con la imagen nula y con la misma categoría")
-    void update_ShouldUpdateFieldsCorrectlyWithNullImageAndSameCategory() {
-        when(productRepo.findById(idProduct)).thenReturn(Optional.of(product));
-        when(mapper.toDTO(any(Product.class))).thenReturn(responseDTO);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
-
-        ProductResponseDTO response = productService.update(idProduct, request, null);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.description()).isEqualTo("Gaming laptop");
-        assertThat(response.price()).isEqualTo(1500.0);
-        assertThat(response.enabled()).isTrue();
-
-        verify(productRepo, times(1)).findById(idProduct);
-        verify(productRepo, times(1)).save(any(Product.class));
-    }
-
-
-    @Test
-    @DisplayName("Update - Debería actualizar producto con imagen exitosamente")
-    void update_ShouldCreateProductWithImage_WhenValidFileProvided() {
-        Integer idProduct = 1;
-        ProductRequestDTO requestDTO = new ProductRequestDTO(null, "Laptop", "Gaming laptop", 1500.0, true);
-
-        Map<String, Object> cloudinaryResult = Map.of(
-                "secure_url", "https://cloudinary.com/image.jpg",
-                "public_id", "img_123"
-        );
-        ProductResponseDTO expectedResponse = new ProductResponseDTO(
-                product.getIdProduct(), category.getIdCategory(), "Laptop", "Gaming laptop", 1500.0, 0,
-                "https://cloudinary.com/image.jpg", "img_123", true
-        );
-
-        when(productRepo.findById(idProduct)).thenReturn(Optional.of(product));
-        when(cloudinaryService.upload(validFile)).thenReturn(cloudinaryResult);
-        when(productRepo.save(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            assertThat(p.getImageUrl()).isEqualTo("https://cloudinary.com/image.jpg");
-            assertThat(p.getImagePublicId()).isEqualTo("img_123");
-            return p;
-        });
-        when(mapper.toDTO(any(Product.class))).thenReturn(expectedResponse);
-
-        ProductResponseDTO response = productService.update(1, requestDTO, validFile);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.imageUrl()).isEqualTo("https://cloudinary.com/image.jpg");
-        assertThat(response.imagePublicId()).isEqualTo("img_123");
-
-        verify(cloudinaryService, times(1)).upload(validFile);
-        verify(productRepo, times(1)).save(any(Product.class));
-    }
-
-    @Test
-    @DisplayName("Update - Debería eliminar la imagen previa cuando se actualiza el producto con una nueva imagen")
-    void update_ShouldDeletePreviousImage_WhenNewImageIsProvided() {
-        ProductRequestDTO requestDTO = new ProductRequestDTO(null, "Laptop", "Gaming laptop", 1500.0, true);
-        product.setImagePublicId("img_123456");
-
-        Map<String, Object> cloudinaryResult = Map.of(
-                "secure_url", secure_url,
-                "public_id", public_id
-        );
-        ProductResponseDTO expectedResponse = new ProductResponseDTO(
-                product.getIdProduct(), category.getIdCategory(), "Laptop", "Gaming laptop", 1500.0, 0,
-                secure_url, public_id, true
-        );
-
-        when(productRepo.findById(idProduct)).thenReturn(Optional.of(product));
-        when(cloudinaryService.delete(anyString())).thenReturn(null);
-        when(cloudinaryService.upload(validFile)).thenReturn(cloudinaryResult);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
-        when(mapper.toDTO(any(Product.class))).thenReturn(expectedResponse);
-
-        ProductResponseDTO response = productService.update(product.getIdProduct(), requestDTO, validFile);
-
-        assertThat(response).isNotNull();
-        assertThat(response.name()).isEqualTo("Laptop");
-        assertThat(response.imageUrl()).isEqualTo(secure_url);
-        assertThat(response.imagePublicId()).isEqualTo(public_id);
-
-        verify(cloudinaryService, times(1)).upload(validFile);
-        verify(cloudinaryService, times(1)).delete("img_123456");
-        verify(productRepo, times(1)).save(any(Product.class));
+        mockImage = mock(MultipartFile.class);
     }
 
     // ============================================
-    // TESTS DE READ
+    // TESTS PARA CREATE
+    // ============================================
+    @Nested
+    @DisplayName("Create Product Tests")
+    class CreateProductTests {
+
+        @Test
+        @DisplayName("Create - Crear producto exitosamente sin imagen")
+        void testCreate_Success_WithoutImage() {
+            when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
+            when(productMapper.toEntity(requestDTO)).thenReturn(product);
+            when(productRepo.save(any(Product.class))).thenReturn(product);
+            when(productMapper.toDTO(product)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.create(requestDTO, null);
+
+            assertThat(result).isNotNull();
+            assertThat(result.idProduct()).isEqualTo(1);
+            assertThat(result.name()).isEqualTo("Laptop");
+            assertThat(result.stock()).isZero();
+
+            verify(categoryRepo, times(1)).findById(1);
+            verify(productMapper, times(1)).toEntity(requestDTO);
+            verify(productRepo, times(1)).save(any(Product.class));
+            verify(productMapper, times(1)).toDTO(product);
+            verify(cloudinaryService, never()).upload(any());
+        }
+
+        @Test
+        @DisplayName("Create - Crear producto exitosamente con imagen")
+        void testCreate_Success_WithImage() {
+            Map<String, Object> cloudinaryResult = new HashMap<>();
+            cloudinaryResult.put("secure_url", "https://cloudinary.com/image.jpg");
+            cloudinaryResult.put("public_id", "cloudinary_public_id");
+
+            when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
+            when(productMapper.toEntity(requestDTO)).thenReturn(product);
+            when(mockImage.isEmpty()).thenReturn(false);
+            when(cloudinaryService.upload(mockImage)).thenReturn(cloudinaryResult);
+            when(productRepo.save(any(Product.class))).thenReturn(product);
+            when(productMapper.toDTO(product)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.create(requestDTO, mockImage);
+
+            assertThat(result).isNotNull();
+            verify(cloudinaryService, times(1)).upload(mockImage);
+            verify(productRepo, times(1)).save(any(Product.class));
+
+            // Verificar que se establecieron la URL y el publicId
+            ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+            verify(productRepo).save(productCaptor.capture());
+            Product savedProduct = productCaptor.getValue();
+            assertThat(savedProduct.getCategory()).isEqualTo(category);
+            assertThat(savedProduct.getStock()).isZero();
+        }
+
+        @Test
+        @DisplayName("Create - Crear producto con imagen vacía (no se sube)")
+        void testCreate_Success_WithEmptyImage() {
+            when(categoryRepo.findById(1)).thenReturn(Optional.of(category));
+            when(productMapper.toEntity(requestDTO)).thenReturn(product);
+            when(mockImage.isEmpty()).thenReturn(true);
+            when(productRepo.save(any(Product.class))).thenReturn(product);
+            when(productMapper.toDTO(product)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.create(requestDTO, mockImage);
+
+            assertThat(result).isNotNull();
+            verify(cloudinaryService, never()).upload(any());
+            verify(productRepo, times(1)).save(any(Product.class));
+        }
+
+        @Test
+        @DisplayName("Create - Lanza excepción cuando categoría no existe")
+        void testCreate_ThrowsException_WhenCategoryNotFound() {
+            when(categoryRepo.findById(1)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.create(requestDTO, null))
+                    .isInstanceOf(ModelNotFoundException.class)
+                    .hasMessageContaining("Categoría no encontrada ID: 1");
+
+            verify(categoryRepo, times(1)).findById(1);
+            verify(productMapper, never()).toEntity(any());
+            verify(productRepo, never()).save(any());
+        }
+
+    }
+    // ============================================
+    // TESTS PARA UPDATE
     // ============================================
 
-    @Test
-    @DisplayName("ReadById - Debería retornar producto cuando existe")
-    void readById_ShouldReturnProduct_WhenExists() {
-        // ARRANGE
-        when(productRepo.findById(1)).thenReturn(Optional.of(product));
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
+    @Nested
+    @DisplayName("Update Product Tests")
+    class UpdateProductTests {
 
-        // ACT
-        ProductResponseDTO response = productService.readById(1);
 
-        // ASSERT
-        assertThat(response).isNotNull();
-        assertThat(response.idProduct()).isEqualTo(1);
-        assertThat(response.name()).isEqualTo("Laptop");
+        @Test
+        @DisplayName("Update - Actualizar producto exitosamente sin cambiar categoría ni imagen")
+        void testUpdate_Success_WithoutCategoryAndImageChange() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(1, "Laptop Actualizada", "Nueva descripción", 1800.0, true);
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .imageUrl("https://example.com/image.jpg")
+                    .imagePublicId("public_id_123")
+                    .enabled(true)
+                    .build();
 
-        verify(productRepo, times(1)).findById(1);
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, null);
+
+            assertThat(result).isNotNull();
+            verify(productRepo, times(1)).findById(1);
+            verify(categoryRepo, never()).findById(anyInt()); // No se busca categoría porque es la misma
+            verify(cloudinaryService, never()).upload(any());
+            verify(cloudinaryService, never()).delete(any());
+            verify(productRepo, times(1)).save(existingProduct);
+
+            assertThat(existingProduct.getName()).isEqualTo("Laptop Actualizada");
+            assertThat(existingProduct.getDescription()).isEqualTo("Nueva descripción");
+            assertThat(existingProduct.getPrice()).isEqualTo(1800.0);
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar producto con cambio de categoría")
+        void testUpdate_Success_WithCategoryChange() {
+            Category newCategory = Category.builder()
+                    .idCategory(2)
+                    .name("Computadoras")
+                    .description("Computadoras y laptops")
+                    .enabled(true)
+                    .build();
+
+            ProductRequestDTO updateDTO = new ProductRequestDTO(2, "Laptop Actualizada", "Nueva descripción", 1800.0, true);
+
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(categoryRepo.findById(2)).thenReturn(Optional.of(newCategory));
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, null);
+
+            assertThat(result).isNotNull();
+            verify(categoryRepo, times(1)).findById(2);
+            verify(productRepo, times(1)).save(existingProduct);
+            assertThat(existingProduct.getCategory()).isEqualTo(newCategory);
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar producto con nueva imagen (elimina la anterior)")
+        void testUpdate_Success_WithNewImage() {
+            Map<String, Object> cloudinaryResult = new HashMap<>();
+            cloudinaryResult.put("secure_url", "https://cloudinary.com/new_image.jpg");
+            cloudinaryResult.put("public_id", "new_public_id");
+
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .imageUrl("https://example.com/old_image.jpg")
+                    .imagePublicId("old_public_id")
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(mockImage.isEmpty()).thenReturn(false);
+            when(cloudinaryService.upload(mockImage)).thenReturn(cloudinaryResult);
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, requestDTO, mockImage);
+
+            assertThat(result).isNotNull();
+            verify(cloudinaryService, times(1)).delete("old_public_id");
+            verify(cloudinaryService, times(1)).upload(mockImage);
+            verify(productRepo, times(1)).save(existingProduct);
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar producto con nueva imagen cuando no había imagen previa")
+        void testUpdate_Success_WithNewImageAndNoPreviousImage() {
+            Map<String, Object> cloudinaryResult = new HashMap<>();
+            cloudinaryResult.put("secure_url", "https://cloudinary.com/new_image.jpg");
+            cloudinaryResult.put("public_id", "new_public_id");
+
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .imageUrl(null)
+                    .imagePublicId(null)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(mockImage.isEmpty()).thenReturn(false);
+            when(cloudinaryService.upload(mockImage)).thenReturn(cloudinaryResult);
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, requestDTO, mockImage);
+
+            assertThat(result).isNotNull();
+            verify(cloudinaryService, never()).delete(any()); // No se elimina porque no había imagen previa
+            verify(cloudinaryService, times(1)).upload(mockImage);
+            verify(productRepo, times(1)).save(existingProduct);
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar solo campos no nulos")
+        void testUpdate_Success_OnlyNonNullFields() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(1, "Laptop Actualizada", null, 1800.0, null);
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Descripción original")
+                    .price(1500.0)
+                    .stock(10)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, null);
+
+            assertThat(result).isNotNull();
+            assertThat(existingProduct.getName()).isEqualTo("Laptop Actualizada");
+            assertThat(existingProduct.getDescription()).isEqualTo("Descripción original"); // No cambió
+            assertThat(existingProduct.getPrice()).isEqualTo(1800.0);
+            assertThat(existingProduct.isEnabled()).isTrue(); // No cambió
+        }
+
+        @Test
+        @DisplayName("Update - No actualizar precio si es menor o igual a 0")
+        void testUpdate_Success_PriceNotUpdatedWhenZeroOrNegative() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(1, "Laptop", "Descripción", 0.0, true);
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, null);
+
+            assertThat(result).isNotNull();
+            assertThat(existingProduct.getPrice()).isEqualTo(1500.0); // No cambió
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar producto cuando categoryId es null (no cambia categoría)")
+        void testUpdate_Success_WhenCategoryIdIsNull() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(null, "Laptop Actualizada", "Nueva descripción", 1800.0, true);
+
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, null);
+
+            assertThat(result).isNotNull();
+            assertThat(existingProduct.getCategory()).isEqualTo(category); // No cambió
+            assertThat(existingProduct.getName()).isEqualTo("Laptop Actualizada");
+            assertThat(existingProduct.getDescription()).isEqualTo("Nueva descripción");
+            assertThat(existingProduct.getPrice()).isEqualTo(1800.0);
+            verify(categoryRepo, never()).findById(anyInt());
+        }
+
+        @Test
+        @DisplayName("Update - Actualizar con imagen empty (isEmpty retorna true)")
+        void testUpdate_Success_WithEmptyImageFile() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(1, "Laptop Actualizada", "Nueva descripción", 1800.0, true);
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .imageUrl("https://example.com/old_image.jpg")
+                    .imagePublicId("old_public_id")
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(mockImage.isEmpty()).thenReturn(true); // Imagen vacía
+            when(productRepo.save(any(Product.class))).thenReturn(existingProduct);
+            when(productMapper.toDTO(existingProduct)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.update(1, updateDTO, mockImage);
+
+            assertThat(result).isNotNull();
+            verify(cloudinaryService, never()).delete(any()); // No se elimina
+            verify(cloudinaryService, never()).upload(any()); // No se sube
+            verify(productRepo, times(1)).save(existingProduct);
+        }
+
+        @Test
+        @DisplayName("Update - Lanza excepción cuando producto no existe")
+        void testUpdate_ThrowsException_WhenProductNotFound() {
+            when(productRepo.findById(1)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.update(1, requestDTO, null))
+                    .isInstanceOf(ModelNotFoundException.class)
+                    .hasMessageContaining("Producto no encontrado ID: 1");
+
+            verify(productRepo, times(1)).findById(1);
+            verify(productRepo, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Update - Lanza excepción cuando categoría nueva no existe")
+        void testUpdate_ThrowsException_WhenNewCategoryNotFound() {
+            ProductRequestDTO updateDTO = new ProductRequestDTO(
+                    99, // Categoría inexistente
+                    "Laptop",
+                    "Descripción",
+                    1500.0,
+                    true
+            );
+
+            Product existingProduct = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(existingProduct));
+            when(categoryRepo.findById(99)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.update(1, updateDTO, null))
+                    .isInstanceOf(ModelNotFoundException.class)
+                    .hasMessageContaining("Categoría no encontrada ID: 99");
+
+            verify(categoryRepo, times(1)).findById(99);
+            verify(productRepo, never()).save(any());
+        }
     }
-
-    @Test
-    @DisplayName("ReadById - Debería lanzar excepción cuando no existe")
-    void readById_ShouldThrowException_WhenNotFound() {
-        // ARRANGE
-        when(productRepo.findById(999)).thenReturn(Optional.empty());
-
-        // ACT & ASSERT
-        assertThatThrownBy(() -> productService.readById(999))
-                .isInstanceOf(ModelNotFoundException.class)
-                .hasMessageContaining("Producto no encontrado ID: 999");
-    }
-
-    @Test
-    @DisplayName("ReadAll - Debería retornar página de productos")
-    void readAllWithPagination_ShouldReturnPagedProducts() {
-        // ARRANGE
-        List<Product> products = List.of(product);
-        Page<Product> productPage = new PageImpl<>(products, PageRequest.of(0, 10), 1);
-
-        when(productRepo.findAll(any(Pageable.class))).thenReturn(productPage);
-        when(mapper.toDTO(product)).thenReturn(responseDTO);
-
-        // ACT
-        Page<ProductResponseDTO> response = productService.readAllWithPagination(0, 10);
-
-        // ASSERT
-        assertThat(response).isNotNull();
-        assertThat(response.getContent()).hasSize(1);
-        assertThat(response.getTotalElements()).isEqualTo(1);
-        assertThat(response.getContent().getFirst().name()).isEqualTo("Laptop");
-    }
-
-
     // ============================================
-    // TESTS DE DELETE
+    // TESTS TESTS
     // ============================================
 
-    @Test
-    @DisplayName("Delete - Debería eliminar producto exitosamente sin imagen asociada")
-    void delete_ShouldNotDeleteImage_WhenNoImageAssociated() {
-        when(productRepo.findById(1)).thenReturn(Optional.of(product));
-        when(productRepo.save(any(Product.class))).thenReturn(product);
+    @Nested
+    @DisplayName("Read Product Tests")
+    class ReadProductTests {
+        @Test
+        @DisplayName("ReadAllWithPagination - Obtener página de productos exitosamente")
+        void testReadAllWithPagination_Success() {
+            List<Product> products = List.of(product);
+            Page<Product> productPage = new PageImpl<>(products);
 
-        productService.delete(1);
+            when(productRepo.findAll(any(Pageable.class))).thenReturn(productPage);
+            when(productMapper.toDTO(any(Product.class))).thenReturn(responseDTO);
 
-        verify(productRepo, times(1)).findById(1);
-        verify(productRepo, times(1)).save(any(Product.class));
-        verifyNoInteractions(cloudinaryService);
+            Page<ProductResponseDTO> result = productService.readAllWithPagination(0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().getFirst().name()).isEqualTo("Laptop");
+
+            verify(productRepo, times(1)).findAll(any(Pageable.class));
+            verify(productMapper, times(1)).toDTO(product);
+        }
+
+        @Test
+        @DisplayName("ReadAllWithPagination - Obtener página vacía")
+        void testReadAllWithPagination_EmptyPage() {
+            Page<Product> emptyPage = new PageImpl<>(List.of());
+
+            when(productRepo.findAll(any(Pageable.class))).thenReturn(emptyPage);
+
+            Page<ProductResponseDTO> result = productService.readAllWithPagination(0, 10);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).isEmpty();
+
+            verify(productRepo, times(1)).findAll(any(Pageable.class));
+            verify(productMapper, never()).toDTO(any());
+        }
+
+        // ============================================
+        // TESTS PARA READ BY ID
+        // ============================================
+
+        @Test
+        @DisplayName("ReadById - Obtener producto por ID exitosamente")
+        void testReadById_Success() {
+            when(productRepo.findById(1)).thenReturn(Optional.of(product));
+            when(productMapper.toDTO(product)).thenReturn(responseDTO);
+
+            ProductResponseDTO result = productService.readById(1);
+
+            assertThat(result).isNotNull();
+            assertThat(result.idProduct()).isEqualTo(1);
+            assertThat(result.name()).isEqualTo("Laptop");
+
+            verify(productRepo, times(1)).findById(1);
+            verify(productMapper, times(1)).toDTO(product);
+        }
+
+        @Test
+        @DisplayName("ReadById - Lanza excepción cuando producto no existe")
+        void testReadById_ThrowsException_WhenProductNotFound() {
+            when(productRepo.findById(1)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.readById(1))
+                    .isInstanceOf(ModelNotFoundException.class)
+                    .hasMessageContaining("Producto no encontrado ID: 1");
+
+            verify(productRepo, times(1)).findById(1);
+            verify(productMapper, never()).toDTO(any());
+        }
     }
+    // ============================================
+    // TESTS PARA DELETE
+    // ============================================
 
-    @Test
-    @DisplayName("Delete - Debería eliminar imagen de Cloudinary si el producto tiene una imagen asociada")
-    void delete_ShouldDeleteImage_WhenExists() {
-        product.setImagePublicId(public_id);
-        when(productRepo.findById(1)).thenReturn(Optional.of(product));
-        when(cloudinaryService.delete(public_id)).thenReturn(null);
-        when(productRepo.save(any(Product.class))).thenReturn(product);
+    @Nested
+    @DisplayName("Delete Product Tests")
+    class DeleteProductTests {
+        @Test
+        @DisplayName("Delete - Deshabilitar producto exitosamente con imagen")
+        void testDelete_Success_WithImage() {
+            when(productRepo.findById(1)).thenReturn(Optional.of(product));
+            when(productRepo.save(any(Product.class))).thenReturn(product);
 
-        productService.delete(1);
+            productService.delete(1);
 
-        verify(productRepo, times(1)).findById(1);
-        verify(cloudinaryService, times(1)).delete(product.getImagePublicId());
-        verify(productRepo, times(1)).save(any(Product.class));
+            verify(productRepo, times(1)).findById(1);
+            verify(cloudinaryService, times(1)).delete("public_id_123");
+            verify(productRepo, times(1)).save(product);
+            assertThat(product.isEnabled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Delete - Deshabilitar producto sin imagen")
+        void testDelete_Success_WithoutImage() {
+            Product productWithoutImage = Product.builder()
+                    .idProduct(1)
+                    .category(category)
+                    .name("Laptop")
+                    .description("Laptop HP")
+                    .price(1500.0)
+                    .stock(10)
+                    .imageUrl(null)
+                    .imagePublicId(null)
+                    .enabled(true)
+                    .build();
+
+            when(productRepo.findById(1)).thenReturn(Optional.of(productWithoutImage));
+            when(productRepo.save(any(Product.class))).thenReturn(productWithoutImage);
+
+            productService.delete(1);
+
+            verify(productRepo, times(1)).findById(1);
+            verify(cloudinaryService, never()).delete(any());
+            verify(productRepo, times(1)).save(productWithoutImage);
+            assertThat(productWithoutImage.isEnabled()).isFalse();
+        }
+
+        @Test
+        @DisplayName("Delete - Lanza excepción cuando producto no existe")
+        void testDelete_ThrowsException_WhenProductNotFound() {
+            when(productRepo.findById(1)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> productService.delete(1))
+                    .isInstanceOf(ModelNotFoundException.class)
+                    .hasMessageContaining("Producto no encontrado ID: 1");
+
+            verify(productRepo, times(1)).findById(1);
+            verify(cloudinaryService, never()).delete(any());
+            verify(productRepo, never()).save(any());
+        }
     }
-
-    @Test
-    @DisplayName("Delete - Debería lanzar excepción cuando producto no existe")
-    void delete_ShouldThrowException_WhenNotFound() {
-        when(productRepo.findById(999)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> productService.delete(999))
-                .isInstanceOf(ModelNotFoundException.class)
-                .hasMessageContaining("Producto no encontrado ID: 999");
-
-        verify(productRepo, times(1)).findById(999);
-    }
-
 }

@@ -25,6 +25,7 @@ public class IngressDetail {
     private Product product; // EL PRODUCTO
 
     @Column(nullable = false)
+    @Builder.Default
     private short quantity = 0;
 
     @Column(columnDefinition = "decimal(6,2)", nullable = false)

@@ -10,7 +10,6 @@ import com.alonso.salesapp.repository.CategoryRepo;
 import com.alonso.salesapp.repository.ProductRepo;
 import com.alonso.salesapp.service.ICloudinaryService;
 import com.alonso.salesapp.service.IProductService;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

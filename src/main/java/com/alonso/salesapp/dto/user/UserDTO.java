@@ -7,7 +7,6 @@ public record UserDTO(
         Integer idUser,
         @NotNull Integer idRole, // Relación plana
         @NotNull @NotEmpty String username,
-        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY) // El password solo se escribe, no se devuelve
         @NotNull @NotEmpty String password,
         Boolean enabled
 ) {}

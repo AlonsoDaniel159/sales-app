@@ -24,6 +24,7 @@ public class Category {
     private String description;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
 }

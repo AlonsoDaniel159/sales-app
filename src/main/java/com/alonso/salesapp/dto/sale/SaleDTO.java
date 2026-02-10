@@ -3,6 +3,7 @@ package com.alonso.salesapp.dto.sale;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
@@ -26,5 +27,6 @@ public record SaleDTO(
 
         @NotNull
         @NotEmpty(message = "La venta debe tener al menos un producto") // Que no esté vacía []
+        @Valid
         List<SaleDetailDTO> details
 ) {}

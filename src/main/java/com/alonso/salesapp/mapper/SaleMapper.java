@@ -19,6 +19,7 @@ public interface SaleMapper {
     Sale toEntity(SaleDTO dto);
 
     // Response: Entity → DTO (MapStruct mapea automáticamente)
+    @Mapping(source = "total", target = "total")
     SaleResponseDTO toResponseDTO(Sale entity);
 
     List<SaleResponseDTO> toResponseDTOList(List<Sale> entities);

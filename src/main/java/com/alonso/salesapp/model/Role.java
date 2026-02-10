@@ -18,5 +18,6 @@ public class Role {
     private String name;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 }
