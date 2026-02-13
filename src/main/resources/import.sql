@@ -4,8 +4,8 @@
 -- =====================================================
 
 -- ROLES
-INSERT INTO role (id_role, name, enabled) VALUES (1, 'ROLE_USER', true);
-INSERT INTO role (id_role, name, enabled) VALUES (2, 'ROLE_ADMIN', true);
+INSERT INTO role (id_role, name, enabled) VALUES (1, 'ROLE_ADMIN', true);
+INSERT INTO role (id_role, name, enabled) VALUES (2, 'ROLE_USER', true);
 INSERT INTO role (id_role, name, enabled) VALUES (3, 'ROLE_EDITOR', true);
 
 -- CATEGORÍAS
@@ -39,11 +39,11 @@ INSERT INTO provider (name, address, enabled) VALUES ('Importaciones Hogar', 'Ca
 INSERT INTO provider (name, address, enabled) VALUES ('Deportes Globales', 'Av. Deportiva 654, Chiclayo', true);
 
 -- USUARIOS
-INSERT INTO user_data (id_role, username, password, enabled) VALUES (2, 'admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', true);
-INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'juan.perez', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', true);
-INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'maria.garcia', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', true);
-INSERT INTO user_data (id_role, username, password, enabled) VALUES (3, 'carlos.editor', '$2a$10$DdaU08.guE1nRjhYMfUePOjueJXY1s8O4OMiP6Gn8KQVdnvIDZ34G', true);
-INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'ana.lopez', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', true);
+INSERT INTO user_data (id_role, username, password, enabled) VALUES (2, 'admin', '$2a$12$UDsdJckhfMsfsFh/tXB/Zu96HnZX66i3FoudQV9bsKshHdVoPXozi', true);
+INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'juan.perez', '$2a$12$UDsdJckhfMsfsFh/tXB/Zu96HnZX66i3FoudQV9bsKshHdVoPXozi', true);
+INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'maria.garcia', '$2a$12$UDsdJckhfMsfsFh/tXB/Zu96HnZX66i3FoudQV9bsKshHdVoPXozi', true);
+INSERT INTO user_data (id_role, username, password, enabled) VALUES (3, 'carlos.editor', '$2a$12$UDsdJckhfMsfsFh/tXB/Zu96HnZX66i3FoudQV9bsKshHdVoPXozi', true);
+INSERT INTO user_data (id_role, username, password, enabled) VALUES (1, 'ana.lopez', '$2a$12$UDsdJckhfMsfsFh/tXB/Zu96HnZX66i3FoudQV9bsKshHdVoPXozi', true);
 
 -- CLIENTES
 INSERT INTO client (first_name, last_name, card_id, phone_number, email, address) VALUES ('Roberto', 'Martínez', '12345678', '987654321', 'roberto.martinez@email.com', 'Av. Principal 100, Lima');

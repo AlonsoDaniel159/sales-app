@@ -3,6 +3,8 @@ package com.alonso.salesapp.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,7 +15,6 @@ import org.springframework.web.context.request.WebRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalErrorHandler {
@@ -78,6 +79,62 @@ public class GlobalErrorHandler {
                 null
         );
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    // Manejar credenciales inválidas (401 Unauthorized)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseBody
+    public ErrorResponse handleBadCredentials(BadCredentialsException ex, HttpServletRequest request) {
+        return new ErrorResponse(
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                null
+        );
+    }
+
+    // Manejar usuario no encontrado (404 Not Found)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseBody
+    public ErrorResponse handleUsernameNotFound(UsernameNotFoundException ex, HttpServletRequest request) {
+        return new ErrorResponse(
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                null
+        );
+    }
+
+    // Manejar token inválido (401 Unauthorized)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ExceptionHandler(InvalidTokenException.class)
+    @ResponseBody
+    public ErrorResponse handleInvalidToken(InvalidTokenException ex, HttpServletRequest request) {
+        return new ErrorResponse(
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                null
+        );
+    }
+
+    // Manejar usuario ya existente (409 Conflict)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ResponseBody
+    public ErrorResponse handleUserAlreadyExists(UserAlreadyExistsException ex, HttpServletRequest request) {
+        return new ErrorResponse(
+                ex.getMessage(),
+                LocalDateTime.now(),
+                ex.getClass().getSimpleName(),
+                request.getRequestURI(),
+                null
+        );
     }
 
 }
