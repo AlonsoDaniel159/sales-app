@@ -130,9 +130,3 @@ El proyecto utiliza un enfoque estandarizado para la configuración:
 1. **Archivo `application.properties` o `application.yml`**: Contiene configuraciones predeterminadas.
 2. **Variables de entorno**: Para valores sensibles como contraseñas y configuraciones específicas del entorno.
 3. **Integración con Docker**: Se pueden definir variables de entorno en un archivo `docker-compose.yml` para entornos de contenedores.
-
-## Contacto
-
-- **Autor**: Alonso Quispe
-- **Email**: alonsodaniel619@gmail.com
-- **Teléfono**: +51 957 501 458
